@@ -125,7 +125,7 @@ function validateChannelConfig(type: string, config: Record<string, any>): { val
 // ALERT EVALUATION LOGIC
 // ============================================
 
-interface EvaluationResult {
+export interface EvaluationResult {
   triggered: boolean;
   value: number;
   threshold: number;
@@ -415,7 +415,7 @@ interface NotificationPayload {
   projectId: string;
 }
 
-interface NotificationResult {
+export interface NotificationResult {
   success: boolean;
   message: string;
   timestamp: string;

@@ -236,7 +236,7 @@ export const dashboardsRouter = router({
         widgets: widgets.map((w) => ({
           ...w,
           createdAt: w.createdAt.toISOString(),
-          updatedAt: w.updatedAt.toISOString(),
+          updatedAt: (w as any).updatedAt?.toISOString() ?? w.createdAt.toISOString(),
         })),
       };
     }),
@@ -467,11 +467,11 @@ export const dashboardsRouter = router({
           dashboardId: input.dashboardId,
           type: input.type,
           title: input.title,
-          description: input.description,
+          description: input.description ?? null,
           config: input.config,
           position: input.position,
-          queryId: input.queryId,
-        })
+          queryId: input.queryId ?? null,
+        } as any)
         .returning();
 
       // Update dashboard's updatedAt
@@ -483,7 +483,7 @@ export const dashboardsRouter = router({
       return {
         ...widget,
         createdAt: widget.createdAt.toISOString(),
-        updatedAt: widget.updatedAt.toISOString(),
+        updatedAt: (widget as any).updatedAt?.toISOString() ?? widget.createdAt.toISOString(),
       };
     }),
 
@@ -550,7 +550,7 @@ export const dashboardsRouter = router({
       return {
         ...updated,
         createdAt: updated.createdAt.toISOString(),
-        updatedAt: updated.updatedAt.toISOString(),
+        updatedAt: (updated as any).updatedAt?.toISOString() ?? updated.createdAt.toISOString(),
       };
     }),
 
@@ -635,7 +635,6 @@ export const dashboardsRouter = router({
           .update(dashboardWidgetsExtended)
           .set({
             position: widget.position,
-            updatedAt: new Date(),
           })
           .where(
             and(
@@ -944,7 +943,7 @@ export const dashboardsRouter = router({
             ORDER BY bucket
           `);
 
-          return (result as Array<{ bucket: Date; total: number; errors: number }>).map((r) => ({
+          return (result as unknown as Array<{ bucket: Date; total: number; errors: number }>).map((r) => ({
             timestamp: r.bucket.toISOString(),
             total: Number(r.total),
             errors: Number(r.errors),

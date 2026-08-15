@@ -3,7 +3,7 @@ import { router, protectedProcedure } from '../trpc';
 import { db } from '../../../infrastructure/database/connection';
 import { savedQueries } from '../../../infrastructure/database/schema/query';
 import { spans, logs, metrics } from '../../../infrastructure/database/schema/telemetry';
-import { eq, desc, and, sql, gte, lte, like, or } from 'drizzle-orm';
+import { eq, desc, and, sql, gte, like } from 'drizzle-orm';
 import { randomUUID } from 'crypto';
 
 const queryConfigSchema = z.object({
@@ -255,7 +255,7 @@ async function executeLogsQuery(config: QueryConfig, projectId: string, startTim
           break;
       }
     } else if (filter.field === 'severityNumber') {
-      conditions.push(eq(logs.severityNumber, parseInt(filter.value)));
+      conditions.push(eq(logs.severityNumber, filter.value));
     } else if (filter.field === 'body') {
       conditions.push(like(logs.body, `%${filter.value}%`));
     }

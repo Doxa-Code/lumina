@@ -61,7 +61,7 @@ async function main() {
     })
   );
 
-  app.get('/api/health', (req, res) => {
+  app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
   });
 
@@ -82,7 +82,7 @@ async function main() {
   } else {
     // Serve static files in production
     app.use(express.static('dist/web'));
-    app.get('*', (req, res) => {
+    app.get('*', (_req, res) => {
       res.sendFile('index.html', { root: 'dist/web' });
     });
   }

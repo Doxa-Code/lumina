@@ -239,7 +239,7 @@ export const tracesRouter = router({
         ORDER BY bucket
       `);
 
-      return (result as Array<{
+      return (result as unknown as Array<{
         bucket: Date;
         count: number;
         error_count: number;

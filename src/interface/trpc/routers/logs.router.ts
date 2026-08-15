@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { router, projectProcedure } from '../trpc.js';
 import { db } from '../../../infrastructure/database/connection.js';
 import { logs } from '../../../infrastructure/database/schema/index.js';
-import { eq, and, desc, gte, lte, sql, like, or } from 'drizzle-orm';
+import { eq, and, desc, gte, lte, sql, like } from 'drizzle-orm';
 
 export const logsRouter = router({
   list: projectProcedure
@@ -134,7 +134,7 @@ export const logsRouter = router({
         ORDER BY bucket
       `);
 
-      return (result as Array<{
+      return (result as unknown as Array<{
         bucket: Date;
         count: number;
         error_count: number;
