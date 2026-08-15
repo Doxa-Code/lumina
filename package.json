@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "drizzle-kit generate && drizzle-kit migrate && tsx watch src/server.ts",
-    "build": "vite build && tsc -p tsconfig.server.json",
+    "build": "vite build && esbuild src/server.ts --bundle --platform=node --target=node20 --outfile=dist/server.js --external:pg-native --external:lightningcss --external:fsevents --external:vite",
     "start": "node dist/server.js",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
@@ -69,6 +69,7 @@
     "@vitejs/plugin-react": "^4.3.1",
     "autoprefixer": "^10.4.19",
     "drizzle-kit": "^0.24.0",
+    "esbuild": "^0.28.2",
     "eslint": "^8.57.0",
     "postcss": "^8.4.39",
     "tailwindcss": "^3.4.6",

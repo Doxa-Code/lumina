@@ -2,7 +2,6 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import type { Server } from 'http';
-import { createServer as createViteServer, type ViteDevServer } from 'vite';
 import { createExpressMiddleware } from '@trpc/server/adapters/express';
 import { appRouter } from './interface/trpc/router.js';
 import { createContext } from './interface/trpc/context.js';
@@ -16,7 +15,7 @@ const PORT = process.env.PORT || 3000;
 const isDev = process.env.NODE_ENV !== 'production';
 
 let mainServer: Server | null = null;
-let vite: ViteDevServer | null = null;
+let vite: any = null;
 
 async function shutdown() {
   console.log('\nShutting down gracefully...');
@@ -71,7 +70,8 @@ async function main() {
   app.use(createMetricsRouter());
 
   if (isDev) {
-    // Vite dev server as middleware
+    // Vite dev server as middleware (dynamic import to avoid bundling in production)
+    const { createServer: createViteServer } = await import('vite');
     vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa',
