@@ -1,0 +1,45 @@
+<svg width="200" height="60" viewBox="0 0 200 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Três círculos conectados representando spans/traces -->
+  <g id="logo-mark">
+    <!-- Linhas de conexão -->
+    <line x1="18" y1="30" x2="38" y2="30" stroke="url(#gradient1)" stroke-width="2" stroke-linecap="round"/>
+    <line x1="42" y1="30" x2="62" y2="30" stroke="url(#gradient1)" stroke-width="2" stroke-linecap="round"/>
+
+    <!-- Círculo esquerdo (trace start) -->
+    <circle cx="14" cy="30" r="8" fill="url(#gradient1)"/>
+    <circle cx="14" cy="30" r="4" fill="#0a0a0a" opacity="0.9"/>
+
+    <!-- Círculo central (span) -->
+    <circle cx="40" cy="30" r="10" fill="url(#gradient2)"/>
+    <circle cx="40" cy="30" r="5" fill="#0a0a0a" opacity="0.9"/>
+
+    <!-- Círculo direito (trace end) -->
+    <circle cx="66" cy="30" r="8" fill="url(#gradient3)"/>
+    <circle cx="66" cy="30" r="4" fill="#0a0a0a" opacity="0.9"/>
+
+    <!-- Brilho/luz emanando do centro -->
+    <circle cx="40" cy="30" r="14" stroke="url(#gradient2)" stroke-width="1" opacity="0.4"/>
+    <circle cx="40" cy="30" r="18" stroke="url(#gradient2)" stroke-width="0.5" opacity="0.2"/>
+  </g>
+
+  <!-- Texto LUMINA -->
+  <text x="82" y="36" font-family="'Space Grotesk', system-ui, sans-serif" font-size="24" font-weight="700" fill="#fafafa" letter-spacing="2">
+    LUMINA
+  </text>
+
+  <!-- Gradientes verdes -->
+  <defs>
+    <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#10b981"/>
+      <stop offset="100%" style="stop-color:#22c55e"/>
+    </linearGradient>
+    <linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#22c55e"/>
+      <stop offset="100%" style="stop-color:#00ff7f"/>
+    </linearGradient>
+    <linearGradient id="gradient3" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#00ff7f"/>
+      <stop offset="100%" style="stop-color:#4ade80"/>
+    </linearGradient>
+  </defs>
+</svg>

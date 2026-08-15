@@ -1,0 +1,146 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* Brutalist dark theme - raw, bold, unapologetic */
+  :root {
+    /* Pure dark backgrounds - no subtle gradients */
+    --background: 0 0% 4%;
+    --foreground: 0 0% 98%;
+
+    /* Card - slightly visible against background */
+    --card: 0 0% 8%;
+    --card-foreground: 0 0% 98%;
+
+    /* Popover */
+    --popover: 0 0% 6%;
+    --popover-foreground: 0 0% 98%;
+
+    /* Brutalist primary - electric/neon accent */
+    --primary: 150 100% 50%;
+    --primary-foreground: 0 0% 0%;
+
+    /* Secondary - stark contrast */
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 98%;
+
+    /* Muted */
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 60%;
+
+    /* Accent - visible but not overpowering */
+    --accent: 0 0% 18%;
+    --accent-foreground: 0 0% 98%;
+
+    /* Destructive - raw red */
+    --destructive: 0 100% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Success - electric green */
+    --success: 150 100% 50%;
+    --success-foreground: 0 0% 0%;
+
+    /* Warning - stark yellow */
+    --warning: 50 100% 50%;
+    --warning-foreground: 0 0% 0%;
+
+    /* Border - thick, visible */
+    --border: 0 0% 25%;
+    --input: 0 0% 20%;
+    --ring: 150 100% 50%;
+
+    /* Brutalist = no radius */
+    --radius: 0;
+
+    /* Sidebar */
+    --sidebar: 0 0% 3%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-border: 0 0% 20%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Space Mono', 'JetBrains Mono', monospace;
+    letter-spacing: -0.01em;
+  }
+
+  code, pre {
+    font-family: 'Space Mono', 'JetBrains Mono', monospace;
+  }
+
+  /* Brutalist typography - bold headings */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Space Grotesk', 'Inter', sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+  }
+
+  /* Brutalist selection */
+  ::selection {
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+  }
+
+  /* Brutalist focus - thick outline instead of ring */
+  *:focus-visible {
+    outline: 3px solid hsl(var(--primary));
+    outline-offset: 2px;
+  }
+}
+
+/* Brutalist scrollbar - thick, visible */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+  border-left: 2px solid hsl(var(--border));
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.5);
+  border: 2px solid hsl(var(--background));
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--primary));
+}
+
+/* Brutalist utility classes */
+@layer utilities {
+  .brutalist-border {
+    @apply border-2 border-foreground;
+  }
+
+  .brutalist-border-thick {
+    @apply border-4 border-foreground;
+  }
+
+  .brutalist-shadow {
+    box-shadow: 4px 4px 0 0 hsl(var(--foreground));
+  }
+
+  .brutalist-shadow-primary {
+    box-shadow: 4px 4px 0 0 hsl(var(--primary));
+  }
+
+  .brutalist-hover:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 0 hsl(var(--foreground));
+  }
+
+  .brutalist-active:active {
+    transform: translate(2px, 2px);
+    box-shadow: 0 0 0 0 hsl(var(--foreground));
+  }
+}
