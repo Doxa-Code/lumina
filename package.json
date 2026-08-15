@@ -4,8 +4,8 @@
   "type": "module",
   "scripts": {
     "dev": "drizzle-kit generate && drizzle-kit migrate && tsx watch src/server.ts",
-    "build": "vite build && esbuild src/server.ts --bundle --platform=node --target=node20 --outfile=dist/server.js --external:pg-native --external:lightningcss --external:fsevents --external:vite",
-    "start": "node dist/server.js",
+    "build": "vite build && esbuild src/server.ts --bundle --platform=node --target=node20 --format=cjs --outfile=dist/server.cjs --external:pg-native --external:lightningcss --external:fsevents --external:vite --define:import.meta.url=import_meta_url --banner:js=\"const import_meta_url = require('url').pathToFileURL(__filename).href;\"",
+    "start": "node dist/server.cjs",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
