@@ -6,15 +6,12 @@ import {
   BarChart3,
   Search,
   AlertTriangle,
-  Layers,
   Settings,
   Key,
   Server,
   Home,
-  Bell,
   LayoutDashboard,
   Network,
-  Radio,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useProjectStore } from '../../stores/projectStore';
@@ -28,8 +25,6 @@ const navigation = [
   { name: 'Logs', href: '/logs', icon: FileText },
   { name: 'Metrics', href: '/metrics', icon: BarChart3 },
   { name: 'Errors', href: '/errors', icon: AlertTriangle },
-  { name: 'Alerts', href: '/alerts', icon: Bell, exact: true },
-  { name: 'Channels', href: '/alerts/channels', icon: Radio },
   { name: 'Queries', href: '/queries', icon: Search },
 ];
 

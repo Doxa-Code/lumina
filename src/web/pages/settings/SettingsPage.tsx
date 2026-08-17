@@ -41,6 +41,7 @@ const settingsSections = [
     name: 'Alerts & Notifications',
     description: 'Configure alerting and notification channels',
     icon: Bell,
+    href: '/alerts',
   },
   {
     id: 'retention',
