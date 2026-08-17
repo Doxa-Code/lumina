@@ -24,6 +24,16 @@ const retentionOptions = [
   { days: 365, label: '365 days', description: 'Annual retention' },
 ];
 
+function formatCount(count: number): string {
+  if (count >= 1_000_000) {
+    return `${(count / 1_000_000).toFixed(1)}M`;
+  }
+  if (count >= 1_000) {
+    return `${(count / 1_000).toFixed(1)}K`;
+  }
+  return count.toLocaleString();
+}
+
 export function DataRetentionPage() {
   const { currentProject, setCurrentProject } = useProjectStore();
   const [retentionDays, setRetentionDays] = useState(currentProject?.retentionDays || 30);
@@ -32,6 +42,11 @@ export function DataRetentionPage() {
   const [purgeConfirmation, setPurgeConfirmation] = useState('');
 
   const utils = trpc.useUtils();
+
+  const storageStatsQuery = trpc.projects.getStorageStats.useQuery(
+    { projectId: currentProject?.id ?? '' },
+    { enabled: !!currentProject?.id }
+  );
 
   const updateProjectMutation = trpc.projects.update.useMutation({
     onSuccess: (updated) => {
@@ -42,6 +57,14 @@ export function DataRetentionPage() {
         });
       }
       utils.projects.list.invalidate();
+    },
+  });
+
+  const purgeDataMutation = trpc.projects.purgeData.useMutation({
+    onSuccess: () => {
+      setPurgeDialogOpen(false);
+      setPurgeConfirmation('');
+      storageStatsQuery.refetch();
     },
   });
 
@@ -168,20 +191,23 @@ export function DataRetentionPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="p-4 rounded-lg bg-muted/50">
               <p className="text-sm text-muted-foreground">Traces</p>
-              <p className="text-2xl font-bold">--</p>
+              <p className="text-2xl font-bold">
+                {storageStatsQuery.isLoading ? '--' : formatCount(storageStatsQuery.data?.traces ?? 0)}
+              </p>
             </div>
             <div className="p-4 rounded-lg bg-muted/50">
               <p className="text-sm text-muted-foreground">Logs</p>
-              <p className="text-2xl font-bold">--</p>
+              <p className="text-2xl font-bold">
+                {storageStatsQuery.isLoading ? '--' : formatCount(storageStatsQuery.data?.logs ?? 0)}
+              </p>
             </div>
             <div className="p-4 rounded-lg bg-muted/50">
               <p className="text-sm text-muted-foreground">Metrics</p>
-              <p className="text-2xl font-bold">--</p>
+              <p className="text-2xl font-bold">
+                {storageStatsQuery.isLoading ? '--' : formatCount(storageStatsQuery.data?.metrics ?? 0)}
+              </p>
             </div>
           </div>
-          <p className="text-xs text-muted-foreground mt-4">
-            Storage statistics will be available soon.
-          </p>
         </CardContent>
       </Card>
 
@@ -243,14 +269,16 @@ export function DataRetentionPage() {
             </Button>
             <Button
               variant="destructive"
-              disabled={purgeConfirmation !== 'PURGE'}
+              disabled={purgeConfirmation !== 'PURGE' || purgeDataMutation.isPending}
               onClick={() => {
-                // TODO: Implement purge mutation
-                setPurgeDialogOpen(false);
-                setPurgeConfirmation('');
+                if (!currentProject) return;
+                purgeDataMutation.mutate({
+                  projectId: currentProject.id,
+                  confirmation: 'PURGE',
+                });
               }}
             >
-              Purge All Data
+              {purgeDataMutation.isPending ? 'Purging...' : 'Purge All Data'}
             </Button>
           </DialogFooter>
         </DialogContent>

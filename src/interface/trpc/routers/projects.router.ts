@@ -8,8 +8,12 @@ import {
   projectMembers,
   apiKeys,
   users,
+  spans,
+  logs,
+  metrics,
+  serviceDependencies,
 } from '../../../infrastructure/database/schema/index.js';
-import { eq, and, or, like } from 'drizzle-orm';
+import { eq, and, or, like, count, sql } from 'drizzle-orm';
 import { hashApiKey } from '../../../infrastructure/auth/index.js';
 import { ApiKey } from '../../../domain/identity/entities/ApiKey.js';
 
@@ -685,6 +689,107 @@ export const projectsRouter = router({
 
       // Filter out existing members
       return foundUsers.filter((u) => !existingUserIds.includes(u.id));
+    }),
+
+  // ============================================
+  // DATA MANAGEMENT
+  // ============================================
+
+  getStorageStats: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.string().uuid(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const project = await db.query.projects.findFirst({
+        where: eq(projects.id, input.projectId),
+      });
+
+      if (!project) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Project not found',
+        });
+      }
+
+      const membership = await db.query.organizationMembers.findFirst({
+        where: and(
+          eq(organizationMembers.organizationId, project.organizationId),
+          eq(organizationMembers.userId, ctx.user!.id)
+        ),
+      });
+
+      if (!membership) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Not a member of this organization',
+        });
+      }
+
+      // Count telemetry data
+      const [spansCount] = await db
+        .select({ count: count() })
+        .from(spans)
+        .where(eq(spans.projectId, input.projectId));
+
+      const [logsCount] = await db
+        .select({ count: count() })
+        .from(logs)
+        .where(eq(logs.projectId, input.projectId));
+
+      const [metricsCount] = await db
+        .select({ count: count() })
+        .from(metrics)
+        .where(eq(metrics.projectId, input.projectId));
+
+      return {
+        traces: spansCount.count,
+        logs: logsCount.count,
+        metrics: metricsCount.count,
+      };
+    }),
+
+  purgeData: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.string().uuid(),
+        confirmation: z.literal('PURGE'),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const project = await db.query.projects.findFirst({
+        where: eq(projects.id, input.projectId),
+      });
+
+      if (!project) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Project not found',
+        });
+      }
+
+      const membership = await db.query.organizationMembers.findFirst({
+        where: and(
+          eq(organizationMembers.organizationId, project.organizationId),
+          eq(organizationMembers.userId, ctx.user!.id)
+        ),
+      });
+
+      if (!membership || !['OWNER', 'ADMIN'].includes(membership.role)) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Only organization owners and admins can purge data',
+        });
+      }
+
+      // Delete all telemetry data for this project
+      await db.delete(spans).where(eq(spans.projectId, input.projectId));
+      await db.delete(logs).where(eq(logs.projectId, input.projectId));
+      await db.delete(metrics).where(eq(metrics.projectId, input.projectId));
+      await db.delete(serviceDependencies).where(eq(serviceDependencies.projectId, input.projectId));
+
+      return { success: true };
     }),
 });
 
