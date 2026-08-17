@@ -20,6 +20,27 @@ export const tracesRouter = router({
     .query(async ({ ctx, input }) => {
       const projectId = ctx.project!.id;
 
+      // If filtering by serviceName, first find all traceIds that contain that service
+      let filteredTraceIds: string[] | null = null;
+      if (input.serviceName) {
+        const traceIdsWithService = await db
+          .selectDistinct({ traceId: spans.traceId })
+          .from(spans)
+          .where(
+            and(
+              eq(spans.projectId, projectId),
+              eq(spans.serviceName, input.serviceName)
+            )
+          )
+          .limit(1000);
+        filteredTraceIds = traceIdsWithService.map((r) => r.traceId);
+
+        // If no traces found with this service, return empty
+        if (filteredTraceIds.length === 0) {
+          return [];
+        }
+      }
+
       const conditions = [eq(spans.projectId, projectId)];
 
       if (input.from) {
@@ -28,8 +49,8 @@ export const tracesRouter = router({
       if (input.to) {
         conditions.push(lte(spans.startTime, new Date(input.to)));
       }
-      if (input.serviceName) {
-        conditions.push(eq(spans.serviceName, input.serviceName));
+      if (filteredTraceIds) {
+        conditions.push(inArray(spans.traceId, filteredTraceIds));
       }
       if (input.statusCode) {
         conditions.push(eq(spans.statusCode, input.statusCode));
