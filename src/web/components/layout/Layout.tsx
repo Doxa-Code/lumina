@@ -7,10 +7,26 @@ import { useAuthStore } from '../../stores/authStore';
 import { useProjectStore } from '../../stores/projectStore';
 
 export function Layout() {
-  const { currentOrganization } = useAuthStore();
+  const { currentOrganization, setOrganizations, setCurrentOrganization, organizations } = useAuthStore();
   const { setProjects, setCurrentProject, currentProject, clearProject } = useProjectStore();
   const previousOrgId = useRef<string | null>(null);
   const utils = trpc.useUtils();
+
+  // Fetch user's organizations on mount to keep them in sync
+  const { data: orgsData } = trpc.organizations.list.useQuery(undefined, {
+    staleTime: 60000, // Refetch every minute
+  });
+
+  // Update organizations when fetched
+  useEffect(() => {
+    if (orgsData && orgsData.length > 0) {
+      setOrganizations(orgsData);
+      // If no current organization or current one is not in the list, set the first one
+      if (!currentOrganization || !orgsData.find(o => o.id === currentOrganization.id)) {
+        setCurrentOrganization(orgsData[0]);
+      }
+    }
+  }, [orgsData, currentOrganization, setOrganizations, setCurrentOrganization]);
 
   const { data: projects } = trpc.projects.list.useQuery(
     { organizationId: currentOrganization?.id! },

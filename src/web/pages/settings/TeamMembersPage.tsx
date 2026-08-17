@@ -51,11 +51,6 @@ export function TeamMembersPage() {
     { enabled: !!currentOrganization?.id }
   );
 
-  // Debug
-  console.log('currentOrganization:', currentOrganization);
-  console.log('members:', members);
-  console.log('error:', error);
-
   // Search users
   const { data: searchResults } = trpc.organizations.searchUsers.useQuery(
     { query: searchQuery, organizationId: currentOrganization?.id || '' },
