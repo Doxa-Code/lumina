@@ -227,6 +227,122 @@ export const tracesRouter = router({
       }));
     }),
 
+  // Get slowest endpoints
+  slowestEndpoints: projectProcedure
+    .input(
+      z.object({
+        limit: z.number().min(1).max(20).default(10),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const projectId = ctx.project!.id;
+
+      const result = await db
+        .select({
+          name: spans.name,
+          serviceName: spans.serviceName,
+          avgDuration: sql<number>`avg(${spans.durationMs})`,
+          p95Duration: sql<number>`percentile_cont(0.95) within group (order by ${spans.durationMs})`,
+          count: sql<number>`count(*)`,
+          errorCount: sql<number>`count(*) filter (where ${spans.statusCode} = 'ERROR')`,
+        })
+        .from(spans)
+        .where(
+          and(
+            eq(spans.projectId, projectId),
+            sql`${spans.parentSpanId} IS NULL`
+          )
+        )
+        .groupBy(spans.name, spans.serviceName)
+        .orderBy(desc(sql`avg(${spans.durationMs})`))
+        .limit(input.limit);
+
+      return result.map((r) => ({
+        name: r.name,
+        serviceName: r.serviceName,
+        avgDurationMs: Number(r.avgDuration) || 0,
+        p95DurationMs: Number(r.p95Duration) || 0,
+        count: Number(r.count) || 0,
+        errorCount: Number(r.errorCount) || 0,
+        errorRate: r.count > 0 ? (Number(r.errorCount) / Number(r.count)) * 100 : 0,
+      }));
+    }),
+
+  // Get endpoints with most errors
+  errorEndpoints: projectProcedure
+    .input(
+      z.object({
+        limit: z.number().min(1).max(20).default(10),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const projectId = ctx.project!.id;
+
+      const result = await db
+        .select({
+          name: spans.name,
+          serviceName: spans.serviceName,
+          count: sql<number>`count(*)`,
+          errorCount: sql<number>`count(*) filter (where ${spans.statusCode} = 'ERROR')`,
+          avgDuration: sql<number>`avg(${spans.durationMs})`,
+          lastError: sql<Date>`max(${spans.startTime}) filter (where ${spans.statusCode} = 'ERROR')`,
+        })
+        .from(spans)
+        .where(
+          and(
+            eq(spans.projectId, projectId),
+            sql`${spans.parentSpanId} IS NULL`
+          )
+        )
+        .groupBy(spans.name, spans.serviceName)
+        .having(sql`count(*) filter (where ${spans.statusCode} = 'ERROR') > 0`)
+        .orderBy(desc(sql`count(*) filter (where ${spans.statusCode} = 'ERROR')`))
+        .limit(input.limit);
+
+      return result.map((r) => ({
+        name: r.name,
+        serviceName: r.serviceName,
+        count: Number(r.count) || 0,
+        errorCount: Number(r.errorCount) || 0,
+        errorRate: r.count > 0 ? (Number(r.errorCount) / Number(r.count)) * 100 : 0,
+        avgDurationMs: Number(r.avgDuration) || 0,
+        lastError: r.lastError instanceof Date ? r.lastError.toISOString() : null,
+      }));
+    }),
+
+  // Recent errors
+  recentErrors: projectProcedure
+    .input(
+      z.object({
+        limit: z.number().min(1).max(20).default(10),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const projectId = ctx.project!.id;
+
+      const result = await db
+        .select()
+        .from(spans)
+        .where(
+          and(
+            eq(spans.projectId, projectId),
+            eq(spans.statusCode, 'ERROR')
+          )
+        )
+        .orderBy(desc(spans.startTime))
+        .limit(input.limit);
+
+      return result.map((s) => ({
+        traceId: s.traceId,
+        spanId: s.spanId,
+        name: s.name,
+        serviceName: s.serviceName,
+        statusMessage: s.statusMessage,
+        startTime: s.startTime.toISOString(),
+        durationMs: s.durationMs,
+      }));
+    }),
+
   stats: projectProcedure
     .input(
       z.object({
