@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Users, Plus, Trash2, Search, UserPlus, Shield } from 'lucide-react';
+import { Users, Plus, Trash2, Search, UserPlus, Shield, Crown } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -19,72 +19,74 @@ import {
   SelectValue,
 } from '../../components/ui/select';
 import { trpc } from '../../lib/trpc';
-import { useProjectStore } from '../../stores/projectStore';
+import { useAuthStore } from '../../stores/authStore';
 
 const roleDescriptions: Record<string, string> = {
-  ADMIN: 'Full access to project settings and members',
-  EDITOR: 'Can view and edit project data',
+  OWNER: 'Full control over organization and all projects',
+  ADMIN: 'Can manage members and all project settings',
+  MEMBER: 'Can view and edit project data',
   VIEWER: 'Read-only access to project data',
 };
 
 const roleBadgeColors: Record<string, string> = {
+  OWNER: 'bg-yellow-500/10 text-yellow-500',
   ADMIN: 'bg-red-500/10 text-red-500',
-  EDITOR: 'bg-blue-500/10 text-blue-500',
+  MEMBER: 'bg-blue-500/10 text-blue-500',
   VIEWER: 'bg-gray-500/10 text-gray-400',
 };
 
 export function TeamMembersPage() {
-  const { currentProject } = useProjectStore();
+  const { currentOrganization } = useAuthStore();
   const [addMemberOpen, setAddMemberOpen] = useState(false);
   const [email, setEmail] = useState('');
-  const [role, setRole] = useState<'ADMIN' | 'EDITOR' | 'VIEWER'>('VIEWER');
+  const [role, setRole] = useState<'ADMIN' | 'MEMBER' | 'VIEWER'>('MEMBER');
   const [searchQuery, setSearchQuery] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
   const utils = trpc.useUtils();
 
   // Fetch members
-  const { data: members, isLoading } = trpc.projects.listMembers.useQuery(
-    { projectId: currentProject?.id || '' },
-    { enabled: !!currentProject?.id }
+  const { data: members, isLoading } = trpc.organizations.listMembers.useQuery(
+    { organizationId: currentOrganization?.id || '' },
+    { enabled: !!currentOrganization?.id }
   );
 
   // Search users
-  const { data: searchResults } = trpc.projects.searchUsers.useQuery(
-    { query: searchQuery, projectId: currentProject?.id || '' },
-    { enabled: searchQuery.length >= 2 && !!currentProject?.id }
+  const { data: searchResults } = trpc.organizations.searchUsers.useQuery(
+    { query: searchQuery, organizationId: currentOrganization?.id || '' },
+    { enabled: searchQuery.length >= 2 && !!currentOrganization?.id }
   );
 
   // Add member mutation
-  const addMemberMutation = trpc.projects.addMember.useMutation({
+  const addMemberMutation = trpc.organizations.addMember.useMutation({
     onSuccess: () => {
-      utils.projects.listMembers.invalidate();
+      utils.organizations.listMembers.invalidate();
       setAddMemberOpen(false);
       setEmail('');
-      setRole('VIEWER');
+      setRole('MEMBER');
       setSearchQuery('');
     },
   });
 
   // Update role mutation
-  const updateRoleMutation = trpc.projects.updateMemberRole.useMutation({
+  const updateRoleMutation = trpc.organizations.updateMemberRole.useMutation({
     onSuccess: () => {
-      utils.projects.listMembers.invalidate();
+      utils.organizations.listMembers.invalidate();
     },
   });
 
   // Remove member mutation
-  const removeMemberMutation = trpc.projects.removeMember.useMutation({
+  const removeMemberMutation = trpc.organizations.removeMember.useMutation({
     onSuccess: () => {
-      utils.projects.listMembers.invalidate();
+      utils.organizations.listMembers.invalidate();
       setDeleteConfirm(null);
     },
   });
 
   const handleAddMember = () => {
-    if (!currentProject || !email) return;
+    if (!currentOrganization || !email) return;
     addMemberMutation.mutate({
-      projectId: currentProject.id,
+      organizationId: currentOrganization.id,
       email,
       role,
     });
@@ -95,10 +97,10 @@ export function TeamMembersPage() {
     setSearchQuery('');
   };
 
-  if (!currentProject) {
+  if (!currentOrganization) {
     return (
       <div className="flex h-full items-center justify-center">
-        <p className="text-muted-foreground">Select a project to manage team members</p>
+        <p className="text-muted-foreground">Select an organization to manage team members</p>
       </div>
     );
   }
@@ -112,7 +114,7 @@ export function TeamMembersPage() {
             Team Members
           </h1>
           <p className="text-muted-foreground">
-            Manage who has access to {currentProject.name}
+            Manage who has access to {currentOrganization.name}
           </p>
         </div>
         <Button onClick={() => setAddMemberOpen(true)}>
@@ -123,9 +125,9 @@ export function TeamMembersPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Project Members</CardTitle>
+          <CardTitle>Organization Members</CardTitle>
           <CardDescription>
-            Users with direct access to this project. Organization admins always have full access.
+            Users with access to all projects in this organization.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -155,37 +157,50 @@ export function TeamMembersPage() {
                       )}
                     </div>
                     <div>
-                      <p className="font-medium">{member.user.name}</p>
+                      <p className="font-medium flex items-center gap-2">
+                        {member.user.name}
+                        {member.role === 'OWNER' && (
+                          <Crown className="h-4 w-4 text-yellow-500" />
+                        )}
+                      </p>
                       <p className="text-sm text-muted-foreground">{member.user.email}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <Select
-                      value={member.role}
-                      onValueChange={(value) => {
-                        updateRoleMutation.mutate({
-                          memberId: member.id,
-                          role: value as 'ADMIN' | 'EDITOR' | 'VIEWER',
-                        });
-                      }}
-                    >
-                      <SelectTrigger className="w-32">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="ADMIN">Admin</SelectItem>
-                        <SelectItem value="EDITOR">Editor</SelectItem>
-                        <SelectItem value="VIEWER">Viewer</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-red-500 hover:text-red-600 hover:bg-red-500/10"
-                      onClick={() => setDeleteConfirm(member.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    {member.role === 'OWNER' ? (
+                      <span className={`px-3 py-1 rounded text-sm font-medium ${roleBadgeColors[member.role]}`}>
+                        Owner
+                      </span>
+                    ) : (
+                      <Select
+                        value={member.role}
+                        onValueChange={(value) => {
+                          updateRoleMutation.mutate({
+                            memberId: member.id,
+                            role: value as 'ADMIN' | 'MEMBER' | 'VIEWER',
+                          });
+                        }}
+                      >
+                        <SelectTrigger className="w-32">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="ADMIN">Admin</SelectItem>
+                          <SelectItem value="MEMBER">Member</SelectItem>
+                          <SelectItem value="VIEWER">Viewer</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                    {member.role !== 'OWNER' && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-red-500 hover:text-red-600 hover:bg-red-500/10"
+                        onClick={() => setDeleteConfirm(member.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
                 </div>
               ))}
@@ -230,7 +245,7 @@ export function TeamMembersPage() {
           <DialogHeader>
             <DialogTitle>Add Team Member</DialogTitle>
             <DialogDescription>
-              Add a user to this project by their email address
+              Add a user to this organization by their email address
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -286,12 +301,12 @@ export function TeamMembersPage() {
                   <SelectItem value="ADMIN">
                     <div>
                       <p className="font-medium">Admin</p>
-                      <p className="text-xs text-muted-foreground">Full access to project settings</p>
+                      <p className="text-xs text-muted-foreground">Can manage members and settings</p>
                     </div>
                   </SelectItem>
-                  <SelectItem value="EDITOR">
+                  <SelectItem value="MEMBER">
                     <div>
-                      <p className="font-medium">Editor</p>
+                      <p className="font-medium">Member</p>
                       <p className="text-xs text-muted-foreground">Can view and edit project data</p>
                     </div>
                   </SelectItem>
@@ -330,8 +345,8 @@ export function TeamMembersPage() {
           <DialogHeader>
             <DialogTitle>Remove Member</DialogTitle>
             <DialogDescription>
-              Are you sure you want to remove this member from the project?
-              They will lose access immediately.
+              Are you sure you want to remove this member from the organization?
+              They will lose access to all projects immediately.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
