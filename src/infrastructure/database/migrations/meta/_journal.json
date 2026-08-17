@@ -15,6 +15,13 @@
       "when": 1786740309394,
       "tag": "0001_rainy_shiver_man",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1786987408522,
+      "tag": "0002_uneven_calypso",
+      "breakpoints": true
     }
   ]
 }

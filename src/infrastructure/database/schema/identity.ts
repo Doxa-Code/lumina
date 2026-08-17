@@ -71,6 +71,28 @@ export const projects = pgTable(
   })
 );
 
+export const projectMembers = pgTable(
+  'project_members',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    projectId: uuid('project_id')
+      .notNull()
+      .references(() => projects.id, { onDelete: 'cascade' }),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    role: varchar('role', { length: 50 }).notNull().default('VIEWER'),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    invitedBy: uuid('invited_by').references(() => users.id),
+  },
+  (table) => ({
+    uniqueMember: uniqueIndex('project_members_project_user_idx').on(
+      table.projectId,
+      table.userId
+    ),
+  })
+);
+
 export const apiKeys = pgTable('api_keys', {
   id: uuid('id').primaryKey().defaultRandom(),
   projectId: uuid('project_id')
@@ -97,6 +119,9 @@ export type OrganizationMemberSelect = typeof organizationMembers.$inferSelect;
 
 export type ProjectInsert = typeof projects.$inferInsert;
 export type ProjectSelect = typeof projects.$inferSelect;
+
+export type ProjectMemberInsert = typeof projectMembers.$inferInsert;
+export type ProjectMemberSelect = typeof projectMembers.$inferSelect;
 
 export type ApiKeyInsert = typeof apiKeys.$inferInsert;
 export type ApiKeySelect = typeof apiKeys.$inferSelect;
