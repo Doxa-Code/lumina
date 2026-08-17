@@ -19,7 +19,7 @@ export function RegisterPage() {
 
   const registerMutation = trpc.auth.register.useMutation({
     onSuccess: (data) => {
-      setAuth(data.user, data.token, [data.organization]);
+      setAuth(data.user, data.token, [{ ...data.organization, role: 'OWNER' }]);
       setProjects([data.project]);
       setCurrentProject(data.project);
       navigate('/');

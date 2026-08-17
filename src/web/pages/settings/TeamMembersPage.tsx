@@ -46,10 +46,15 @@ export function TeamMembersPage() {
   const utils = trpc.useUtils();
 
   // Fetch members
-  const { data: members, isLoading } = trpc.organizations.listMembers.useQuery(
+  const { data: members, isLoading, error } = trpc.organizations.listMembers.useQuery(
     { organizationId: currentOrganization?.id || '' },
     { enabled: !!currentOrganization?.id }
   );
+
+  // Debug
+  console.log('currentOrganization:', currentOrganization);
+  console.log('members:', members);
+  console.log('error:', error);
 
   // Search users
   const { data: searchResults } = trpc.organizations.searchUsers.useQuery(
@@ -131,7 +136,12 @@ export function TeamMembersPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
+          {error ? (
+            <div className="text-center py-8">
+              <p className="text-red-500 mb-2">Error loading members</p>
+              <p className="text-sm text-muted-foreground">{error.message}</p>
+            </div>
+          ) : isLoading ? (
             <div className="flex items-center justify-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
