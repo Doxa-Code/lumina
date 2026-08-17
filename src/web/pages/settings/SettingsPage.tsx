@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Settings, Key, Users, Bell, Shield, Database, Trash2, Save, AlertTriangle } from 'lucide-react';
+import { Settings, Key, Users, Bell, Shield, Database, Trash2, Save, AlertTriangle, ExternalLink } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -64,7 +64,6 @@ export function SettingsPage() {
   const { currentProject, setCurrentProject, clearProject } = useProjectStore();
   const [projectName, setProjectName] = useState(currentProject?.name || '');
   const [environment, setEnvironment] = useState(currentProject?.environment || 'production');
-  const [retentionDays, setRetentionDays] = useState(currentProject?.retentionDays || 30);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState('');
 
@@ -75,7 +74,6 @@ export function SettingsPage() {
     if (currentProject) {
       setProjectName(currentProject.name);
       setEnvironment(currentProject.environment || 'production');
-      setRetentionDays(currentProject.retentionDays || 30);
     }
   }, [currentProject]);
 
@@ -110,7 +108,6 @@ export function SettingsPage() {
       projectId: currentProject.id,
       name: projectName,
       environment: environment as 'production' | 'staging' | 'development',
-      retentionDays,
     });
   };
 
@@ -204,19 +201,6 @@ export function SettingsPage() {
               </select>
             </div>
 
-            <div className="grid gap-2">
-              <label className="text-sm font-medium">Data Retention (days)</label>
-              <Input
-                type="number"
-                value={retentionDays}
-                onChange={(e) => setRetentionDays(parseInt(e.target.value) || 30)}
-                min={7}
-                max={365}
-              />
-              <p className="text-xs text-muted-foreground">
-                Data older than this will be automatically deleted. Min: 7 days, Max: 365 days.
-              </p>
-            </div>
           </div>
 
           <div className="flex justify-end">
