@@ -34,6 +34,7 @@ const settingsSections = [
     name: 'Team Members',
     description: 'Manage team access and permissions',
     icon: Users,
+    href: '/settings/team',
   },
   {
     id: 'alerts',
