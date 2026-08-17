@@ -52,12 +52,14 @@ export function Header() {
 
   const createProjectMutation = trpc.projects.create.useMutation({
     onSuccess: (newProject) => {
+      // Update store immediately for instant UI feedback
       setProjects([...projects, newProject]);
       setCurrentProject(newProject);
       setIsCreateProjectDialogOpen(false);
       setNewProjectName('');
       setCreateProjectError('');
-      // Invalidate project-related queries only
+      // Invalidate queries to sync with server
+      utils.projects.list.invalidate();
       utils.traces.invalidate();
       utils.logs.invalidate();
       utils.errors.invalidate();
@@ -70,7 +72,8 @@ export function Header() {
 
   const createOrgMutation = trpc.organizations.create.useMutation({
     onSuccess: (result) => {
-      const newOrg = result.organization;
+      const newOrg = { ...result.organization, role: 'OWNER' };
+      // Update store immediately for instant UI feedback
       setOrganizations([...organizations, newOrg]);
       setCurrentOrganization(newOrg);
       setProjects([result.project]);
@@ -78,6 +81,9 @@ export function Header() {
       setIsCreateOrgDialogOpen(false);
       setNewOrgName('');
       setCreateOrgError('');
+      // Invalidate queries to sync with server
+      utils.organizations.list.invalidate();
+      utils.projects.list.invalidate();
     },
     onError: (err) => {
       setCreateOrgError(err.message);
