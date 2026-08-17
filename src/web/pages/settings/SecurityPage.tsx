@@ -1,10 +1,8 @@
-import { useState } from 'react';
-import { Shield, Key, Lock, Eye, EyeOff, Clock, Globe, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Shield, Key, Lock, Globe, CheckCircle2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
-import { Input } from '../../components/ui/input';
 import { useProjectStore } from '../../stores/projectStore';
-import { trpc } from '../../lib/trpc';
 
 interface SecuritySetting {
   id: string;
@@ -16,13 +14,6 @@ interface SecuritySetting {
 
 export function SecurityPage() {
   const { currentProject } = useProjectStore();
-  const [showApiKeys, setShowApiKeys] = useState(false);
-
-  // Fetch API keys to show activity
-  const { data: apiKeys } = trpc.apiKeys.list.useQuery(
-    { projectId: currentProject?.id || '' },
-    { enabled: !!currentProject?.id }
-  );
 
   const securitySettings: SecuritySetting[] = [
     {
@@ -55,9 +46,6 @@ export function SecurityPage() {
       </div>
     );
   }
-
-  const activeKeys = apiKeys?.filter(k => !k.expiresAt || new Date(k.expiresAt) > new Date()) || [];
-  const expiredKeys = apiKeys?.filter(k => k.expiresAt && new Date(k.expiresAt) <= new Date()) || [];
 
   return (
     <div className="max-w-4xl space-y-6">
@@ -100,89 +88,6 @@ export function SecurityPage() {
                 </div>
               </div>
             ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Key className="h-5 w-5" />
-            API Key Security
-          </CardTitle>
-          <CardDescription>
-            Overview of API key usage and security
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 rounded-lg bg-muted/50">
-              <p className="text-sm text-muted-foreground">Total API Keys</p>
-              <p className="text-2xl font-bold">{apiKeys?.length || 0}</p>
-            </div>
-            <div className="p-4 rounded-lg bg-green-500/10">
-              <p className="text-sm text-muted-foreground">Active Keys</p>
-              <p className="text-2xl font-bold text-green-500">{activeKeys.length}</p>
-            </div>
-            <div className="p-4 rounded-lg bg-red-500/10">
-              <p className="text-sm text-muted-foreground">Expired Keys</p>
-              <p className="text-2xl font-bold text-red-500">{expiredKeys.length}</p>
-            </div>
-          </div>
-
-          {apiKeys && apiKeys.length > 0 && (
-            <div className="pt-4 border-t">
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="text-sm font-medium">Recent API Key Activity</h4>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowApiKeys(!showApiKeys)}
-                >
-                  {showApiKeys ? (
-                    <>
-                      <EyeOff className="h-4 w-4 mr-2" />
-                      Hide
-                    </>
-                  ) : (
-                    <>
-                      <Eye className="h-4 w-4 mr-2" />
-                      Show
-                    </>
-                  )}
-                </Button>
-              </div>
-              {showApiKeys && (
-                <div className="space-y-2">
-                  {apiKeys.slice(0, 5).map((key) => (
-                    <div
-                      key={key.id}
-                      className="flex items-center justify-between p-3 rounded-lg bg-muted/50 text-sm"
-                    >
-                      <div className="flex items-center gap-2">
-                        <Key className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-medium">{key.name}</span>
-                        <code className="text-xs text-muted-foreground">{key.keyPrefix}...</code>
-                      </div>
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Clock className="h-4 w-4" />
-                        {key.lastUsedAt ? (
-                          <span>Last used {new Date(key.lastUsedAt).toLocaleDateString()}</span>
-                        ) : (
-                          <span>Never used</span>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          <div className="pt-4">
-            <Button variant="outline" asChild>
-              <a href="/settings/api-keys">Manage API Keys</a>
-            </Button>
           </div>
         </CardContent>
       </Card>
