@@ -18,6 +18,8 @@ import { MetricsPage } from './pages/metrics/MetricsPage';
 import { SettingsPage } from './pages/settings/SettingsPage';
 import { ApiKeysPage } from './pages/settings/ApiKeysPage';
 import { TeamMembersPage } from './pages/settings/TeamMembersPage';
+import { DataRetentionPage } from './pages/settings/DataRetentionPage';
+import { SecurityPage } from './pages/settings/SecurityPage';
 import { AlertsPage } from './pages/alerts/AlertsPage';
 import { AlertDetailPage } from './pages/alerts/AlertDetailPage';
 import { ChannelsPage } from './pages/alerts/ChannelsPage';
@@ -109,6 +111,8 @@ export function App() {
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/settings/api-keys" element={<ApiKeysPage />} />
               <Route path="/settings/team" element={<TeamMembersPage />} />
+              <Route path="/settings/retention" element={<DataRetentionPage />} />
+              <Route path="/settings/security" element={<SecurityPage />} />
               <Route path="/docs/instrumentation" element={<InstrumentationExamplesPage />} />
             </Route>
           </Routes>

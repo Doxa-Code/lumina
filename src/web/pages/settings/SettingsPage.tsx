@@ -48,12 +48,14 @@ const settingsSections = [
     name: 'Data Retention',
     description: 'Configure data retention policies',
     icon: Database,
+    href: '/settings/retention',
   },
   {
     id: 'security',
     name: 'Security',
     description: 'Security and compliance settings',
     icon: Shield,
+    href: '/settings/security',
   },
 ];
 
