@@ -372,15 +372,15 @@ export function SpanDetail({ span, onClose, onCopySuccess }: SpanDetailProps) {
             ) : (
               <div className="space-y-4">
                 {spanEvents.map((event, idx) => (
-                  <div key={idx} className="bg-background rounded-lg p-4 border">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium">{event.name}</span>
-                      <span className="text-xs text-muted-foreground font-mono">
+                  <div key={idx} className="bg-background rounded-lg p-4 border overflow-hidden">
+                    <div className="flex items-center justify-between gap-2 mb-2">
+                      <span className="text-sm font-medium break-all">{event.name}</span>
+                      <span className="text-xs text-muted-foreground font-mono shrink-0">
                         {new Date(event.timestamp).toLocaleTimeString()}
                       </span>
                     </div>
                     {Object.keys(event.attributes).length > 0 && (
-                      <pre className="text-xs font-mono text-muted-foreground mt-2">
+                      <pre className="text-xs font-mono leading-relaxed text-muted-foreground mt-2 overflow-x-auto whitespace-pre-wrap break-words">
                         {JSON.stringify(event.attributes, null, 2)}
                       </pre>
                     )}
